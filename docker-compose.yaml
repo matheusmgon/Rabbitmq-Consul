@@ -1,0 +1,208 @@
+version: '3.2'
+
+
+#dock certificado: https://learn.hashicorp.com/tutorials/consul/tls-encryption-openssl-secure
+#dock server HA: https://learn.hashicorp.com/tutorials/consul/docker-compose-datacenter?in=consul/docker
+
+
+networks:
+    consul:
+      drive: bridge
+
+
+services:
+
+    traefik:
+        image: traefik
+        restart: always
+        container_name: traefik
+        command:
+            - "--log.level=INFO"
+            - "--api.dashboard=true"
+            - "--accesslog=false"
+            - "--providers.docker=true"
+            - "--providers.docker.exposedbydefault=false"
+            - "--providers.docker.network=consul"
+            - "--entrypoints.web.address=:80"
+            - "--entrypoints.securityweb.address=:443"
+            - "--entrypoints.rabbitmq.address=:5672"
+            - "--entrypoints.consul.address=:8500"
+            - "--entrypoints.dns-tcp.address=:8600/tcp"
+            - "--entrypoints.dns-udp.address=:8600/udp"
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.api.entrypoints=web"
+            - "traefik.http.routers.api.rule=HostRegexp(`traefik.redelocal`)"
+            - "traefik.http.routers.api.service=api@internal"
+        ports:
+            - 80:80
+            - 5672:5672
+            - 8500:8500
+            - 8600:8600/tcp
+            - 8600:8600/udp
+
+        networks:
+            - consul
+
+        volumes:
+            - "/var/run/docker.sock:/var/run/docker.sock"
+
+        stdin_open: true
+        tty: true
+        privileged: true
+#                                                                                                                       #
+# ----------------------------------------------------------------------------------------------------------------------#
+#                                                                                                                       #
+    consul-server1:
+        image: hashicorp/consul:1.9.3
+        container_name: consul-server1
+        hostname: consul-server1
+        volumes: 
+            - ./consul/consul-server1/config/server.json:/consul/config/server.json:ro
+            - ./consul/consul-server1/data/:/consul/data:rw
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.consul-web.entrypoints=web"  
+            - "traefik.http.routers.consul-web.rule=Host(`consul.redelocal`)"
+            - "traefik.http.services.consul-web.loadbalancer.server.port=8500"
+            - "traefik.http.routers.consul.entrypoints=consul"
+            - "traefik.http.routers.consul.rule=Host(`consul.redelocal`)"
+        networks:
+            - consul
+
+        restart: always
+        command: 'agent -bootstrap-expect=3'
+
+    consul-server2:
+        image: hashicorp/consul:1.9.3
+        container_name: consul-server2
+        restart: always
+        volumes:
+            - ./consul/consul-server2/config/server.json:/consul/config/server.json:ro
+            - ./consul/consul-server2/data/:/consul/data:rw
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.consul-web.entrypoints=web"  
+            - "traefik.http.routers.consul-web.rule=Host(`consul.redelocal`)"
+            - "traefik.http.services.consul-web.loadbalancer.server.port=8500"
+            - "traefik.http.routers.consul.entrypoints=consul"
+            - "traefik.http.routers.consul.rule=Host(`consul.redelocal`)"
+        networks:
+            - consul
+               
+        command: 'agent -bootstrap-expect=3'
+    
+    consul-server3:
+        image: hashicorp/consul:1.9.3
+        container_name: consul-server3
+        restart: always
+        volumes:
+            - ./consul/consul-server3/config/server.json:/consul/config/server.json:ro
+            - ./consul/consul-server3/data/:/consul/data:rw
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.consul-web.entrypoints=web"  
+            - "traefik.http.routers.consul-web.rule=Host(`consul.redelocal`)"
+            - "traefik.http.services.consul-web.loadbalancer.server.port=8500"
+            - "traefik.http.routers.consul.entrypoints=consul"
+            - "traefik.http.routers.consul.rule=Host(`consul.redelocal`)"
+        networks:
+            - consul
+        
+        command: 'agent -bootstrap-expect=3'
+    
+    consul-client:
+        image: hashicorp/consul:1.9.3
+        container_name: consul-client
+        restart: always
+        volumes:
+            - ./consul/consul-agent/:/consul/:rw
+            - ./consul/consul-agent/data/:/consul/data:rw
+        networks:
+            - consul
+        command: 'agent'
+
+#                                                                                                                       #
+# ----------------------------------------------------------------------------------------------------------------------#
+#                                                                                                                       #
+    rabbitmq-server1:
+        build: 
+            context: ./rabbitmq/docker/
+            dockerfile: Dockerfile
+        container_name: rabbitmq-server1
+        hostname: rabbitmq-server1
+        restart: always
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.rabbitmq-web.entrypoints=web"
+            - "traefik.http.routers.rabbitmq-web.rule=Host(`rabbitmq.redelocal`)"
+            - "traefik.http.services.rabbitmq-web.loadbalancer.server.port=15672"
+
+        volumes:
+            - ./rabbitmq/rabbitmq-server1/var-lib/:/var/lib/rabbitmq/:rw
+            - ./rabbitmq/rabbitmq-server1/etc/:/etc/rabbitmq/:rw
+
+        networks:
+            - consul
+
+        environment: 
+            - "RABBITMQ_ERLANG_COOKIE=rabbitmq"
+            - "RABBITMQ_NODENAME=rabbit@rabbitmq-server1"
+            - "RABBITMQ_DEFAULT_USER=infraestrutura"
+            - "RABBITMQ_DEFAULT_PASS=infraestrutura"
+            - "RABBITMQ_DEFAULT_VHOST=hypeflame"
+    rabbitmq-server2:
+        build: 
+            context: ./rabbitmq/docker/
+            dockerfile: Dockerfile
+        container_name: rabbitmq-server2
+        hostname: rabbitmq-server2
+        restart: always
+
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.rabbitmq-web.entrypoints=web"
+            - "traefik.http.routers.rabbitmq-web.rule=Host(`rabbitmq.redelocal`)"
+            - "traefik.http.services.rabbitmq-web.loadbalancer.server.port=15672"
+
+        volumes:
+            - ./rabbitmq/rabbitmq-server2/var-lib/:/var/lib/rabbitmq/:rw
+            - ./rabbitmq/rabbitmq-server2/etc/:/etc/rabbitmq/:rw
+
+        networks:
+            - consul    
+               
+        environment: 
+            - "RABBITMQ_ERLANG_COOKIE=rabbitmq"
+            - "RABBITMQ_NODENAME=rabbit@rabbitmq-server2"
+            - "RABBITMQ_DEFAULT_USER=infraestrutura"
+            - "RABBITMQ_DEFAULT_PASS=infraestrutura"
+            - "RABBITMQ_DEFAULT_VHOST=hypeflame"
+
+    rabbitmq-server3:
+        build: 
+            context: ./rabbitmq/docker/
+            dockerfile: Dockerfile
+        container_name: rabbitmq-server3
+        hostname: rabbitmq-server3
+        restart: always
+
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.rabbitmq-web.entrypoints=web"
+            - "traefik.http.routers.rabbitmq-web.rule=Host(`rabbitmq.redelocal`)"
+            - "traefik.http.services.rabbitmq-web.loadbalancer.server.port=15672"
+
+        volumes:
+            - ./rabbitmq/rabbitmq-server3/var-lib/:/var/lib/rabbitmq/:rw
+            - ./rabbitmq/rabbitmq-server3/etc/:/etc/rabbitmq/:rw
+        networks:
+            - consul
+                
+        environment: 
+            - "RABBITMQ_ERLANG_COOKIE=rabbitmq"
+            - "RABBITMQ_NODENAME=rabbit@rabbitmq-server3"
+            - "RABBITMQ_DEFAULT_USER=infraestrutura"
+            - "RABBITMQ_DEFAULT_PASS=infraestrutura"
+            - "RABBITMQ_DEFAULT_VHOST=hypeflame"
+

@@ -1,0 +1,12 @@
+consul/consul-server-1/data/
+consul/consul-server-2/data/
+consul/consul-server-3/data/
+rabbitmq/rabbitmq-server1/mnesia/
+rabbitmq/rabbitmq-server1/var-lib/mnesia/
+rabbitmq/rabbitmq-server2/var-lib/mnesia/
+rabbitmq/rabbitmq-server2/mnesia/
+rabbitmq/rabbitmq-server2/var-lib/mnesia/
+rabbitmq/rabbitmq-server3/mnesia/
+rabbitmq/rabbitmq-server3/var-lib/mnesia/
+
+

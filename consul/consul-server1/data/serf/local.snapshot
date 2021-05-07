@@ -1,0 +1,17 @@
+alive: consul-server1 172.30.0.4:8301
+alive: consul-server1 172.30.0.9:8301
+alive: consul-client 172.30.0.6:8301
+alive: consul-server2 172.30.0.7:8301
+clock: 98
+alive: consul-server3 172.30.0.8:8301
+clock: 99
+event-clock: 1
+clock: 100
+alive: consul-server1 172.30.0.3:8301
+alive: consul-server3 172.30.0.6:8301
+clock: 101
+alive: consul-client 172.30.0.2:8301
+alive: consul-server2 172.30.0.4:8301
+clock: 102
+event-clock: 2
+clock: 103
