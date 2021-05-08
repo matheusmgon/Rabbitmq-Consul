@@ -133,24 +133,15 @@ services:
             - "traefik.http.routers.rabbitmq-web.entrypoints=web"
             - "traefik.http.routers.rabbitmq-web.rule=Host(`rabbitmq.redelocal`)"
             - "traefik.http.services.rabbitmq-web.loadbalancer.server.port=15672"
-            #TCP
-            - "traefik.http.routers.rabbitmq-tcp.entrypoints=rabbitmq"
-            - "traefik.http.routers.rabbitmq-tcp.rule=HostSNI(`rabbitmq.redelocal`)"
-            - "traefik.tcp.services.rabbitmq-tcp.loadbalancer.server.port=5672"
-
         volumes:
             - ./rabbitmq/rabbitmq-server1/etc/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
-            - ./rabbitmq/rabbitmq-server1/etc/plugins/:/etc/rabbitmq/plugins/:rw
 
-            # - ./rabbitmq/rabbitmq-server1/var-lib/:/var/lib/rabbitmq/:rw
-            # - ./rabbitmq/rabbitmq-server1/etc/:/etc/rabbitmq/:rw
 
         networks:
             - consul
 
         environment: 
             - "RABBITMQ_ERLANG_COOKIE=rabbitmq"
-            - "RABBITMQ_PLUGINS_DIR=/etc/rabbitmq/plugins/"
             - "RABBITMQ_NODENAME=rabbit@rabbitmq-server1"
             - "RABBITMQ_DEFAULT_USER=infraestrutura"
             - "RABBITMQ_DEFAULT_PASS=infraestrutura"
@@ -169,17 +160,9 @@ services:
             - "traefik.http.routers.rabbitmq-web.entrypoints=web"
             - "traefik.http.routers.rabbitmq-web.rule=Host(`rabbitmq.redelocal`)"
             - "traefik.http.services.rabbitmq-web.loadbalancer.server.port=15672"
-            #TCP
-            - "traefik.http.routers.rabbitmq-tcp.entrypoints=rabbitmq"
-            - "traefik.http.routers.rabbitmq-tcp.rule=HostSNI(`rabbitmq.redelocal`)"
-            - "traefik.tcp.services.rabbitmq-tcp.loadbalancer.server.port=5672"
 
         volumes:
             - ./rabbitmq/rabbitmq-server2/etc/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
-            - ./rabbitmq/rabbitmq-server2/etc/plugins/:/etc/rabbitmq/plugins/:rw
-            # - ./rabbitmq/rabbitmq-server2/var-lib/:/var/lib/rabbitmq/:rw
-            # - ./rabbitmq/rabbitmq-server2/etc/:/etc/rabbitmq/:rw
-
         networks:
             - consul    
                
@@ -204,14 +187,8 @@ services:
             - "traefik.http.routers.rabbitmq-web.entrypoints=web"
             - "traefik.http.routers.rabbitmq-web.rule=Host(`rabbitmq.redelocal`)"
             - "traefik.http.services.rabbitmq-web.loadbalancer.server.port=15672"
-            #TCP
-            - "traefik.http.routers.rabbitmq-tcp.entrypoints=rabbitmq"
-            - "traefik.http.routers.rabbitmq-tcp.rule=HostSNI(`rabbitmq.redelocal`)"
-            - "traefik.tcp.services.rabbitmq-tcp.loadbalancer.server.port=5672"
-
         volumes:
             - ./rabbitmq/rabbitmq-server3/etc/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
-            - ./rabbitmq/rabbitmq-server3/etc/plugins/:/etc/rabbitmq/plugins/:rw
         networks:
             - consul
                 
