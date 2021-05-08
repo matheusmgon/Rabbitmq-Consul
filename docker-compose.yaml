@@ -3,7 +3,7 @@ version: '3.2'
 
 networks:
     consul:
-      external: true
+      driver: bridge
 
 
 services:
